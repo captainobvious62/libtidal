@@ -211,7 +211,9 @@ int main(int argc, char **argv) {
 
     for (t = start; (t < end) || ((t == start) && (start == end)); t += step) {
       if (libtidal_heights(ntides, tides, t, lat, zone, (int) rint(step), 1.0, heights) < 0) {
-        fprintf(stderr, "unable to predict tide: %s\n", t); continue;
+        at = (time_t) rint(t);
+        strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", gmtime(&at));
+        fprintf(stderr, "unable to predict tide: %s\n", timestr); continue;
       }
       for (i = 1; i < (int) rint(step); i++) {
         dh = (heights[i] - heights[i - 1]);
@@ -232,7 +234,9 @@ int main(int argc, char **argv) {
     for (t = start; (t < end) || ((t == start) && (start == end)); t += step) {
       at = (time_t) rint(t);
       if (libtidal_height(ntides, tides, t, lat, zone, &tide) < 0) {
-        fprintf(stderr, "unable to predict tide: %s\n", t); continue;
+        at = (time_t) rint(t);
+        strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", gmtime(&at));
+        fprintf(stderr, "unable to predict tide: %s\n", timestr); continue;
       }
       strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", gmtime(&at));
       fprintf(stdout, "%s %10.6f\n", timestr, datum + tide);
