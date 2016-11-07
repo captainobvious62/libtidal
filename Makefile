@@ -4,6 +4,8 @@
 #   CC : Specify the C compiler to use
 #   CFLAGS : Specify compiler options to use
 
+CFLAGS += -I. -DPACKAGE_VERSION=\"1.0.1\"
+
 LIB_HDRS = libtidal.h
 LIB_SRCS = astronomical.c constituents.c tidal.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)

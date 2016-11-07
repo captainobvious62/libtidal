@@ -50,9 +50,13 @@
 
 #define PROGRAM "tides"
 
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "xxx"
+#endif
+
 /* program variables */
 char *program_name = PROGRAM;
-char *program_version = PROGRAM " 1.0 (c) GNS 2009 (m.chadwick@gns.cri.nz)";
+char *program_version = PROGRAM " (" PACKAGE_VERSION ") (c) GNS 2009 (m.chadwick@gns.cri.nz)";
 char *program_usage = PROGRAM " [-hv][-u][-d <datum>][-l <lat>][-z <zone>][-c <name>/<amp>/<lag>][-f <from>][-t <to>][-s <step>]";
 
 int main(int argc, char **argv) {
@@ -78,7 +82,6 @@ int main(int argc, char **argv) {
   double start = 0.0; /* epoch time */
   double end = 0.0; /* epoch time */
 
-  int utc = 0; /* use gmt */
   int high = 0; /* high/low tides */
   int verbose = 0; /* talkative */
   double zone = 0.0; /* time zone offset */
@@ -91,7 +94,7 @@ int main(int argc, char **argv) {
 
   double *heights = NULL;
 
-  while ((rc = getopt(argc, argv, "hvmud:l:z:c:f:t:i:")) != EOF) {
+  while ((rc = getopt(argc, argv, "hvmd:l:z:c:f:t:i:")) != EOF) {
     switch(rc) {
     case '?':
       (void) fprintf(stderr, "usage: %s\n", program_usage);
@@ -103,7 +106,6 @@ int main(int argc, char **argv) {
       (void) fprintf(stderr, "options:\n");
       (void) fprintf(stderr, "\t-h\tcommand line help (this)\n");
       (void) fprintf(stderr, "\t-v\trun program in verbose mode\n");
-      (void) fprintf(stderr, "\t-u\toutput times in UTC\n");
       (void) fprintf(stderr, "\t-d\tprovide an alternative datum [%g m]\n", datum);
       (void) fprintf(stderr, "\t-l\tprovide a tidal constituent site latitude [%g]\n", lat);
       (void) fprintf(stderr, "\t-z\tprovide a tidal constituent time zone correction [%g]\n", zone);
@@ -115,9 +117,6 @@ int main(int argc, char **argv) {
       exit(0); /*NOTREACHED*/
     case 'v':
       verbose++;
-      break;
-    case 'u':
-      utc++;
       break;
     case 'm':
       high++;
@@ -175,7 +174,7 @@ int main(int argc, char **argv) {
       time_str.tm_sec = sec;
     time_str.tm_isdst = -1;
 
-    start = (double) ((utc) ? timegm(&time_str) : timelocal(&time_str));
+    start = (double) timegm(&time_str);
   }
 
   if (to != NULL) {
@@ -196,7 +195,7 @@ int main(int argc, char **argv) {
       time_str.tm_sec = sec;
     time_str.tm_isdst = -1;
 
-    end = (double) ((utc) ? timegm(&time_str) : timelocal(&time_str));
+    end = (double) timegm(&time_str);
   }
 
   if ((from == NULL) && (to == NULL))
@@ -219,7 +218,7 @@ int main(int argc, char **argv) {
         sgn = ((dh < 0.0) ? -1 : ((dh >= 0.0) ? 1 : 0));
         if ((i > 1) && (sgn != 0) && (sgn != last)) {
           at = (time_t) rint(t) + (time_t) (i - 1);
-          strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", (utc) ? gmtime(&at) : localtime(&at));
+          strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", gmtime(&at));
           fprintf(stdout, "%s %10.6f %s\n", timestr, datum + heights[i - 1], (sgn < 0) ? "H" : "L");
         }
         last = ((sgn != 0) ? sgn : last);
@@ -235,7 +234,7 @@ int main(int argc, char **argv) {
       if (libtidal_height(ntides, tides, t, lat, zone, &tide) < 0) {
         fprintf(stderr, "unable to predict tide: %s\n", t); continue;
       }
-      strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", (utc) ? gmtime(&at) : localtime(&at));
+      strftime(timestr, sizeof(timestr), "%Y-%m-%dT%H:%M:%S", gmtime(&at));
       fprintf(stdout, "%s %10.6f\n", timestr, datum + tide);
     }
   }
